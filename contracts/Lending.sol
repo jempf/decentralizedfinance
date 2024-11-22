@@ -3,7 +3,7 @@ pragma solidity 0.8.28;
 contract Lending {
     uint256 public availableFunds;
 	address public depositor;
-	uint256 public interest = 10; // people that want to borrow money will have to pay 10% interest
+	uint256 public interest = 10;t
 	uint256 public repayTime;
 	uint256 public repayed;
 	uint256 public loanStartTime;
@@ -11,7 +11,6 @@ contract Lending {
 	bool public isLoanActive;
 
 
-    // function that gets deployed when we deploy the smart contract
     constructor(uint256 _repayTime, uint256 _interest) payable {
         repayTime = _repayTime;
         interest = _interest;
@@ -24,7 +23,6 @@ contract Lending {
         availableFunds = availableFunds + msg.value;
     }
 
-    // check if the borrowed amount is zero, meaning the user hasn’t borrowed anything yet, then we set the loan start time.
 
     function borrow(uint256 _amount) public {
 	require(_amount > 0, 'Must borrow something');
@@ -60,7 +58,6 @@ contract Lending {
         payable(msg.sender).transfer(exceeding);
     }
     
-    // Reset everything
     if (!isLoanActive) {
         borrowed = 0;
         availableFunds = 0;

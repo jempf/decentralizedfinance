@@ -1,269 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lending Platform</title>
-    <style>
-        body {
-            background-color: #f0f8ff;
-            font-family: Arial, sans-serif;
-        }
-        .navbar {
-            background: linear-gradient(45deg, #1e90ff, #ff6347);
-        }
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.5em;
-        }
-        .instructions {
-            background-color: #fff3cd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            color: #856404;
-            font-weight: bold;
-        }
-        .btn {
-            font-size: 1.1em;
-            margin-top: 10px;
-        }
-        .box {
-            display: none;
-            max-width: 700px;
-            margin: auto;
-            padding: 20px;
-            background-color: #e3f2fd;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            margin-top: 20px;
-        }
-        .box label {
-            font-weight: bold;
-            color: #333;
-        }
-        .form-text {
-            color: #666;
-        }
-        .btn-primary {
-            background-color: #4caf50;
-            border-color: #4caf50;
-        }
-        .btn-primary:hover {
-            background-color: #45a049;
-        }
-        .container-buttons {
-            margin-top: 20px;
-        }
-    </style>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
-</head>
-<body>
-<nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">Lending Platform</a>
-    </div>
-</nav>
-
-<div class="container text-center">
-    <div class="row justify-content-center">
-        <div class="col-md-6 instructions">
-            As a lender: Deploy a new lending contract, deposit some test ETH and share the contract address with your friend.
-        </div>
-    </div>
-    <div class="row justify-content-center">
-        <div class="col-md-6 instructions">
-            As a borrower: Paste the contract address in the box and borrow some funds. Then make sure to repay them before the agreed date.
-        </div>
-    </div>
-</div>
-
-<div class="container text-center container-buttons">
-    <div class="row justify-content-center">
-        <div class="col-auto">
-            <button onclick="showLend()" type="button" class="btn btn-info">Lend Crypto</button>
-        </div>
-        <div class="col-auto">
-            <button onclick="showBorrow()" type="button" class="btn btn-warning">Borrow Crypto</button>
-        </div>
-        <div class="col-auto">
-            <button onclick="showRepay()" type="button" class="btn btn-danger">Repay Loan</button>
-        </div>
-    </div>
-</div>
-
-<form id="lend" class="box" onsubmit="deployAndDeposit(event)" >
-    <h4>Deploy Lending Contract</h4>
-    <div class="mb-3">
-        <label for="repay-time" class="form-label">Repay time in days</label>
-        <input type="number" oninput="validateRepayInput(event)" class="form-control" id="repay-time" aria-describedby="emailHelp">
-        <div id="emailHelp" class="form-text">Specify how many days the borrower has to pay you back.</div>
-    </div>
-    <div class="mb-3">
-        <label for="interest-percentage" class="form-label">Interest percentage</label>
-        <input type="number" oninput="validateInterest(event)" class="form-control" id="interest-percentage">
-        <div class="form-text">Between 0 and 100.</div>
-    </div>
-    <div class="mb-3">
-        <label for="deposit-to-lend" class="form-label">Max amount to lend</label>
-        <input type="number" step="0.0001" oninput="validateDeposit(event)" class="form-control" id="deposit-to-lend">
-        <div class="form-text">In ETH</div>
-    </div>
-    <button type="submit" class="btn btn-primary">Deploy & Deposit</button>
-    <div class="mt-3">
-        <p id="deployed-contract"></p>
-    </div>
-</form>
-
-<form id="borrow" class="box" onsubmit="borrow(event)" >
-    <h4>Borrow Funds</h4>
-    <div class="mb-3">
-        <label for="lending-borrow-contract" class="form-label">Lending Contract Address</label>
-        <input type="text" class="form-control" id="lending-borrow-contract" aria-describedby="emailHelp">
-        <div id="emailHelp" class="form-text">Enter the deployed lending contract address.</div>
-    </div>
-    <div class="mb-3">
-        <label for="lending-borrow-input" class="form-label">Borrow Amount</label>
-        <input type="number" step="0.0001" oninput="validateBorrowAmount(event)" class="form-control" id="lending-borrow-input">
-        <div class="form-text">In ETH</div>
-    </div>
-    <button type="submit" class="btn btn-primary">Borrow</button>
-</form>
-
-<form id="repay" class="box" onsubmit="repay(event)" >
-    <h4>Repay Loan</h4>
-    <div class="mb-3">
-        <label for="lending-repay-contract" class="form-label">Lending Contract Address</label>
-        <input type="text" class="form-control" id="lending-repay-contract" aria-describedby="emailHelp">
-        <div id="emailHelp" class="form-text">Enter the deployed lending contract address.</div>
-    </div>
-    <div class="mb-3">
-        <label for="repay-input" class="form-label">Repay Amount</label>
-        <input type="number" step="0.0001" class="form-control" id="repay-input">
-    </div>
-    <button type="submit" class="btn btn-primary">Repay</button>
-</form>
-</body>
-<script type="module">
-    // 1
-    import { ethers } from "./ethers.js"
-    window.ethers = ethers
-    import lendingJson from './artifacts/contracts/Lending.sol/Lending.json' assert { type: 'json' }
-    const lendingAbi = lendingJson.abi
-    const lendingBytecode = lendingJson.bytecode
-
-    // 2
-    let repayTime = null
-    let interest = null
-    let deposit = null
-    let eth = {
-        provider: null,
-        address: null,
-        signer: null,
-        lendingContract: null,
-        borrowAmount: null,
-    }
-
-    // 3
-    const setup = async () => {
-        eth.provider = new ethers.providers.Web3Provider(window.ethereum)
-        eth.address = (await eth.provider.send("eth_requestAccounts", []))[0]
-        eth.signer = eth.provider.getSigner(eth.address)
-    }
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Lending Platform</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800">
+        <div class="container mx-auto px-4 py-12">
+            <!-- Header -->
+            <header class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Lending Platform</h1>
+                <p class="text-sm text-gray-600 mt-2">Peer-to-Peer Crypto Lending Simplified</p>
+            </header>
     
-    // 4
-    // In type="module" functions are not global by default that's why we gotta use window
-    window.showLend = () => {
-        [...document.querySelectorAll('.box')].map(box => box.style.display = 'none')
-        document.querySelector('#lend').style.display = 'block'
-    }
-    window.showBorrow = () => {
-        [...document.querySelectorAll('.box')].map(box => box.style.display = 'none')
-        document.querySelector('#borrow').style.display = 'block'
-    }
-    window.showRepay = () => {
-        [...document.querySelectorAll('.box')].map(box => box.style.display = 'none')
-        document.querySelector('#repay').style.display = 'block'
-    }
+            <!-- Card Container -->
+            <div class="max-w-xl mx-auto bg-white shadow-md rounded-lg">
+                <div class="flex border-b">
+                    <button onclick="showLend()" class="flex-1 py-3 text-center text-sm font-medium hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">Lender</button>
+                    <button onclick="showBorrow()" class="flex-1 py-3 text-center text-sm font-medium hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">Borrower</button>
+                    <button onclick="showRepay()" class="flex-1 py-3 text-center text-sm font-medium hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">Repay</button>
+                </div>
     
-    // 5
-    window.validateRepayInput = event => {
-        event.target.value = event.target.value.replace(/[^0-9]*/g,'');
-        repayTime = Number(event.target.value)
-    }
-    window.validateInterest = event => {
-        event.target.value = event.target.value.replace(/[^0-9]*/g,'');
-        interest = Number(event.target.value)
-    }
-    window.validateDeposit = event => {
-        deposit = event.target.value
-    }
-    window.validateBorrowAmount = e => {
-        eth.borrowAmount = e.target.value
-    }
+                <!-- Lend Tab -->
+                <div id="lend" class="p-6 hidden">
+                    <h2 class="text-lg font-semibold mb-4">Lend Crypto</h2>
+                    <form onsubmit="deployAndDeposit(event)">
+                        <div class="mb-4">
+                            <label for="repay-time" class="block text-sm text-gray-700 mb-1">Repay Time (days)</label>
+                            <input type="number" id="repay-time" oninput="validateRepayInput(event)" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" placeholder="30">
+                        </div>
+                        <div class="mb-4">
+                            <label for="interest-percentage" class="block text-sm text-gray-700 mb-1">Interest Rate (%)</label>
+                            <input type="number" id="interest-percentage" oninput="validateInterest(event)" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" placeholder="5">
+                        </div>
+                        <div class="mb-4">
+                            <label for="deposit-to-lend" class="block text-sm text-gray-700 mb-1">Amount to Lend (ETH)</label>
+                            <input type="number" step="0.0001" id="deposit-to-lend" oninput="validateDeposit(event)" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" placeholder="1.0">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">Deploy Lending Contract</button>
+                    </form>
+                </div>
     
-    // 6
-    window.deployAndDeposit = async e => {
-        e.preventDefault()
-        if (!repayTime) return alert('Must set the repay time in days')
-        if (!interest) return alert('Must set the interest percentage')
-        if (interest < 0 || interest > 100) return alert('Interest percentage must be between 0 and 100')
-        if (!deposit) return alert('Must set the deposit amount')
-
-        const factory = new ethers.ContractFactory(lendingAbi, lendingBytecode, eth.signer)
-        eth.lendingContract = await factory.deploy(repayTime, interest, {
-            value: window.ethers.FixedNumber.from(deposit) // This converts the number to wei
-        })
-        console.log('eth.lendingContract', eth.lendingContract)
-        document.querySelector('#deployed-contract').innerHTML = 'Deploying contract...: ' + eth.lendingContract.address
-        console.log('deploying...')
-        await eth.lendingContract.deployTransaction.wait()
-        console.log('eth.lendingContract', eth.lendingContract)
-        console.log('deployed!')
-        alert('deployed!')
-    }
-
-    // 7
-    window.borrow = async e => {
-        e.preventDefault()
-        const lendingAddress = document.querySelector('#lending-borrow-contract').value
-        const borrowAmount = Number(document.querySelector('#lending-borrow-input').value)
-        if (borrowAmount <= 0) return alert('Must set the borrow amount')
-        try {
-            eth.lendingContract = new ethers.Contract(lendingAddress, lendingAbi, eth.signer)
-        } catch (e) {
-            return alert('Invalid lending address')
-        }
-        const tx = await eth.lendingContract.borrow(
-            window.ethers.FixedNumber.from(String(borrowAmount))
-        )
-        await tx.wait()
-        console.log('Borrow successful.')
-        alert('Borrow successful!')
-    }
+                <!-- Borrow Tab -->
+                <div id="borrow" class="p-6 hidden">
+                    <h2 class="text-lg font-semibold mb-4">Borrow Crypto</h2>
+                    <form onsubmit="borrow(event)">
+                        <div class="mb-4">
+                            <label for="lending-borrow-contract" class="block text-sm text-gray-700 mb-1">Contract Address</label>
+                            <input type="text" id="lending-borrow-contract" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" placeholder="0x...">
+                        </div>
+                        <div class="mb-4">
+                            <label for="lending-borrow-input" class="block text-sm text-gray-700 mb-1">Borrow Amount (ETH)</label>
+                            <input type="number" id="lending-borrow-input" step="0.0001" oninput="validateBorrowAmount(event)" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" placeholder="0.5">
+                        </div>
+                        <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600">Borrow</button>
+                    </form>
+                </div>
     
-    // 8
-    window.repay = async e => {
-        e.preventDefault()
+                <!-- Repay Tab -->
+                <div id="repay" class="p-6 hidden">
+                    <h2 class="text-lg font-semibold mb-4">Repay Loan</h2>
+                    <form onsubmit="repay(event)">
+                        <div class="mb-4">
+                            <label for="lending-repay-contract" class="block text-sm text-gray-700 mb-1">Contract Address</label>
+                            <input type="text" id="lending-repay-contract" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" placeholder="0x...">
+                        </div>
+                        <div class="mb-4">
+                            <label for="repay-input" class="block text-sm text-gray-700 mb-1">Repay Amount (ETH)</label>
+                            <input type="number" id="repay-input" step="0.0001" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" placeholder="0.5">
+                        </div>
+                        <button type="submit" class="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600">Repay Loan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script type="module">
+            // 1
+            import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js';
         
-        const lendingAddress = document.querySelector('#lending-repay-contract').value
-        const repayAmount = Number(document.querySelector('#repay-input').value)
-        if (repayAmount <= 0) return alert('Must set the repay amount')
-        try {
-            eth.lendingContract = new ethers.Contract(lendingAddress, lendingAbi, eth.signer)
-        } catch (e) {
-            return alert('Invalid lending address')
-        }
-        const tx = await eth.lendingContract.repay({
-            value: window.ethers.FixedNumber.from(String(repayAmount))
-        })
-        await tx.wait()
-        console.log('Repay successful.')
-        alert('Repay successful!')
-    }
-    
-    // 9
-    setup()
-</script>
+        let lendingAbi, lendingBytecode;
+        
+        // Load the Lending contract ABI and bytecode
+        (async () => {
+            try {
+                const response = await fetch('./artifacts/contracts/Lending.sol/Lending.json');
+                const lendingJson = await response.json();
+                lendingAbi = lendingJson.abi;
+                lendingBytecode = lendingJson.bytecode;
+                console.log('Contract ABI and bytecode loaded:', lendingAbi, lendingBytecode);
+            } catch (error) {
+                console.error('Error loading Lending.json:', error);
+            }
+        })();
+
+        
+            // 2
+            let repayTime = null
+            let interest = null
+            let deposit = null
+            let eth = {
+                provider: null,
+                address: null,
+                signer: null,
+                lendingContract: null,
+                borrowAmount: null,
+            }
+        
+            // 3
+            const setup = async () => {
+            if (!window.ethereum) {
+                alert('MetaMask is not installed. Please install MetaMask.');
+                return;
+            }
+        
+            try {
+                eth.provider = new ethers.providers.Web3Provider(window.ethereum);
+                const accounts = await eth.provider.send('eth_requestAccounts', []);
+                eth.address = accounts[0];
+                eth.signer = eth.provider.getSigner();
+                console.log('Connected account:', eth.address);
+            } catch (error) {
+                console.error('Error connecting to MetaMask:', error);
+                alert('Failed to connect to MetaMask. Check console for details.');
+            }
+        };
+            
+            // 4
+            // In type="module" functions are not global by default that's why we gotta use window
+            window.showLend = () => {
+    // Hide all forms
+    document.querySelectorAll('.p-6').forEach((form) => form.classList.add('hidden'));
+    // Show the Lend form
+    document.querySelector('#lend').classList.remove('hidden');
+};
+
+window.showBorrow = () => {
+    // Hide all forms
+    document.querySelectorAll('.p-6').forEach((form) => form.classList.add('hidden'));
+    // Show the Borrow form
+    document.querySelector('#borrow').classList.remove('hidden');
+};
+
+window.showRepay = () => {
+    // Hide all forms
+    document.querySelectorAll('.p-6').forEach((form) => form.classList.add('hidden'));
+    // Show the Repay form
+    document.querySelector('#repay').classList.remove('hidden');
+};
+        
+        console.log(window.showLend);
+            // 5
+            window.validateRepayInput = event => {
+                event.target.value = event.target.value.replace(/[^0-9]*/g,'');
+                repayTime = Number(event.target.value)
+            }
+            window.validateInterest = event => {
+                event.target.value = event.target.value.replace(/[^0-9]*/g,'');
+                interest = Number(event.target.value)
+            }
+            window.validateDeposit = event => {
+                deposit = event.target.value
+            }
+            window.validateBorrowAmount = e => {
+                eth.borrowAmount = e.target.value
+            }
+            
+            // 6
+            window.deployAndDeposit = async (e) => {
+            e.preventDefault();
+            if (!repayTime) return alert("Must set the repay time in days");
+            if (!interest) return alert("Must set the interest percentage");
+            if (interest < 0 || interest > 100)
+                return alert("Interest percentage must be between 0 and 100");
+            if (!deposit) return alert("Must set the deposit amount");
+        
+            try {
+                const factory = new ethers.ContractFactory(
+                    lendingAbi,
+                    lendingBytecode,
+                    eth.signer
+                );
+                eth.lendingContract = await factory.deploy(repayTime, interest, {
+                    value: ethers.utils.parseEther(deposit.toString()), 
+                });
+        
+                console.log("eth.lendingContract", eth.lendingContract);
+                document.querySelector("#deployed-contract").innerHTML =
+                    "Deploying contract...: " + eth.lendingContract.address;
+        
+                await eth.lendingContract.deployTransaction.wait();
+        
+                console.log("Contract deployed!");
+                alert("Contract deployed successfully!");
+            } catch (error) {
+                console.error("Error deploying contract:", error);
+                alert("Contract deployment failed. Check console for details.");
+            }
+        };
+        
+        
+            // 7
+            window.borrow = async (e) => {
+            e.preventDefault();
+            const lendingAddress = document.querySelector("#lending-borrow-contract").value;
+            const borrowAmount = document.querySelector("#lending-borrow-input").value;
+        
+            if (!borrowAmount || borrowAmount <= 0)
+                return alert("Must set a valid borrow amount");
+        
+            try {
+                eth.lendingContract = new ethers.Contract(lendingAddress, lendingAbi, eth.signer);
+        
+                const tx = await eth.lendingContract.borrow(
+                    ethers.utils.parseEther(borrowAmount.toString())
+                );
+                await tx.wait();
+                console.log("Borrow successful.");
+                alert("Borrow successful!");
+            } catch (error) {
+                console.error("Error borrowing funds:", error);
+                alert("Borrowing failed. Check the console for details.");
+            }
+        };
+        
+            
+            // 8
+            window.repay = async (e) => {
+            e.preventDefault();
+        
+            const lendingAddress = document.querySelector("#lending-repay-contract").value;
+            const repayAmount = document.querySelector("#repay-input").value;
+        
+            if (!repayAmount || repayAmount <= 0)
+                return alert("Must set a valid repay amount");
+        
+            try {
+                eth.lendingContract = new ethers.Contract(lendingAddress, lendingAbi, eth.signer);
+        
+                const tx = await eth.lendingContract.repay({
+                    value: ethers.utils.parseEther(repayAmount.toString()),
+                });
+                await tx.wait();
+                console.log("Repay successful.");
+                alert("Repay successful!");
+            } catch (error) {
+                console.error("Error repaying loan:", error);
+                alert("Repayment failed. Check the console for details.");
+            }
+        };
+        
+            
+            // 9
+            setup()
+        </script>
+</body>
+
 </html>
