@@ -9,13 +9,11 @@
     </head>
     <body class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800">
         <div class="container mx-auto px-4 py-12">
-            <!-- Header -->
             <header class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-900">Lending Platform</h1>
                 <p class="text-sm text-gray-600 mt-2">Peer-to-Peer Crypto Lending Simplified</p>
             </header>
     
-            <!-- Card Container -->
             <div class="max-w-xl mx-auto bg-white shadow-md rounded-lg">
                 <div class="flex border-b">
                     <button onclick="showLend()" class="flex-1 py-3 text-center text-sm font-medium hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">Lender</button>
@@ -23,7 +21,6 @@
                     <button onclick="showRepay()" class="flex-1 py-3 text-center text-sm font-medium hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">Repay</button>
                 </div>
     
-                <!-- Lend Tab -->
                 <div id="lend" class="p-6 hidden">
                     <h2 class="text-lg font-semibold mb-4">Lend Crypto</h2>
                     <form onsubmit="deployAndDeposit(event)">
@@ -43,7 +40,6 @@
                     </form>
                 </div>
     
-                <!-- Borrow Tab -->
                 <div id="borrow" class="p-6 hidden">
                     <h2 class="text-lg font-semibold mb-4">Borrow Crypto</h2>
                     <form onsubmit="borrow(event)">
@@ -59,7 +55,6 @@
                     </form>
                 </div>
     
-                <!-- Repay Tab -->
                 <div id="repay" class="p-6 hidden">
                     <h2 class="text-lg font-semibold mb-4">Repay Loan</h2>
                     <form onsubmit="repay(event)">
@@ -77,12 +72,10 @@
             </div>
         </div>
         <script type="module">
-            // 1
             import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js';
         
         let lendingAbi, lendingBytecode;
         
-        // Load the Lending contract ABI and bytecode
         (async () => {
             try {
                 const response = await fetch('./artifacts/contracts/Lending.sol/Lending.json');
@@ -96,7 +89,6 @@
         })();
 
         
-            // 2
             let repayTime = null
             let interest = null
             let deposit = null
@@ -108,7 +100,7 @@
                 borrowAmount: null,
             }
         
-            // 3
+        
             const setup = async () => {
             if (!window.ethereum) {
                 alert('MetaMask is not installed. Please install MetaMask.');
@@ -127,31 +119,22 @@
             }
         };
             
-            // 4
-            // In type="module" functions are not global by default that's why we gotta use window
             window.showLend = () => {
-    // Hide all forms
     document.querySelectorAll('.p-6').forEach((form) => form.classList.add('hidden'));
-    // Show the Lend form
     document.querySelector('#lend').classList.remove('hidden');
 };
 
 window.showBorrow = () => {
-    // Hide all forms
     document.querySelectorAll('.p-6').forEach((form) => form.classList.add('hidden'));
-    // Show the Borrow form
     document.querySelector('#borrow').classList.remove('hidden');
 };
 
 window.showRepay = () => {
-    // Hide all forms
     document.querySelectorAll('.p-6').forEach((form) => form.classList.add('hidden'));
-    // Show the Repay form
     document.querySelector('#repay').classList.remove('hidden');
 };
         
         console.log(window.showLend);
-            // 5
             window.validateRepayInput = event => {
                 event.target.value = event.target.value.replace(/[^0-9]*/g,'');
                 repayTime = Number(event.target.value)
@@ -167,7 +150,6 @@ window.showRepay = () => {
                 eth.borrowAmount = e.target.value
             }
             
-            // 6
             window.deployAndDeposit = async (e) => {
             e.preventDefault();
             if (!repayTime) return alert("Must set the repay time in days");
@@ -201,7 +183,6 @@ window.showRepay = () => {
         };
         
         
-            // 7
             window.borrow = async (e) => {
             e.preventDefault();
             const lendingAddress = document.querySelector("#lending-borrow-contract").value;
@@ -226,7 +207,6 @@ window.showRepay = () => {
         };
         
             
-            // 8
             window.repay = async (e) => {
             e.preventDefault();
         
@@ -251,8 +231,6 @@ window.showRepay = () => {
             }
         };
         
-            
-            // 9
             setup()
         </script>
 </body>

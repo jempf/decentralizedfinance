@@ -1,71 +1,84 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
+
 contract Lending {
-    uint256 public availableFunds;
-	address public depositor;
-	uint256 public interest = 10;t
-	uint256 public repayTime;
-	uint256 public repayed;
-	uint256 public loanStartTime;
-	uint256 public borrowed;
-	bool public isLoanActive;
+    uint256 public totalFunds;
+    address public owner;
+    uint256 public annualInterestRate;
+    uint256 public maxRepaymentPeriod;
+    uint256 public totalRepaid;
+    uint256 public loanIssuedTimestamp;
+    uint256 public loanAmount;
+    bool public isActiveLoan;
 
-
-    constructor(uint256 _repayTime, uint256 _interest) payable {
-        repayTime = _repayTime;
-        interest = _interest;
-        depositor = msg.sender;
-        deposit();
+    constructor(uint256 repaymentPeriod, uint256 interestRate) payable {
+        require(repaymentPeriod > 0, "Repayment period must be positive");
+        require(interestRate > 0, "Interest rate must be positive");
+        
+        maxRepaymentPeriod = repaymentPeriod;
+        annualInterestRate = interestRate;
+        owner = msg.sender;
+        _depositFunds(msg.value);
     }
 
-    function deposit() public payable {
-        require(msg.sender == depositor, 'You must be the depositor');
-        availableFunds = availableFunds + msg.value;
+    function depositFunds() external payable {
+        require(msg.sender == owner, "Only the owner can deposit funds");
+        _depositFunds(msg.value);
     }
 
+    function borrowFunds(uint256 amount) external {
+        require(amount > 0, "Borrow amount must be positive");
+        require(totalFunds >= amount, "Insufficient funds in contract");
+        require(
+            !isActiveLoan || block.timestamp > loanIssuedTimestamp + maxRepaymentPeriod,
+            "Existing loan must be repaid before borrowing again"
+        );
 
-    function borrow(uint256 _amount) public {
-	require(_amount > 0, 'Must borrow something');
-	require(availableFunds >= _amount, 'No funds available');
-	require(block.timestamp > loanStartTime + repayTime, 'Loan expired must be repayed first');
-	
-     if (borrowed == 0) {
-         loanStartTime = block.timestamp;
-     }
-     availableFunds = availableFunds - _amount;
-     borrowed = borrowed + _amount;
-     isLoanActive = true;
-     payable(msg.sender).transfer(_amount);
+        if (!isActiveLoan) {
+            loanIssuedTimestamp = block.timestamp;
+        }
+
+        totalFunds -= amount;
+        loanAmount += amount;
+        isActiveLoan = true;
+
+        payable(msg.sender).transfer(amount);
     }
 
-    function repay() public payable {
-	require(isLoanActive, 'Must be an active loan');
-	uint256 amountToRepay = borrowed + (borrowed * interest / 100);
-	uint256 leftToPay = amountToRepay - repayed;
-	uint256 exceeding = 0;
+    function repayLoan() external payable {
+        require(isActiveLoan, "No active loan to repay");
 
-    if (msg.value > leftToPay) {
-        exceeding = msg.value - leftToPay;
-        isLoanActive = false;
-    } else if (msg.value == leftToPay) {
-        isLoanActive = false;
-    } else {
-        repayed = repayed + msg.value;
+        uint256 repaymentDue = loanAmount + (loanAmount * annualInterestRate / 100);
+        uint256 remainingBalance = repaymentDue - totalRepaid;
+        uint256 excessAmount = 0;
+
+        if (msg.value >= remainingBalance) {
+            excessAmount = msg.value - remainingBalance;
+            isActiveLoan = false;
+        } else {
+            totalRepaid += msg.value;
+        }
+
+        payable(owner).transfer(msg.value - excessAmount);
+
+        if (excessAmount > 0) {
+            payable(msg.sender).transfer(excessAmount);
+        }
+
+        if (!isActiveLoan) {
+            _resetLoanState();
+        }
     }
 
-    payable(depositor).transfer(msg.value - exceeding);
-    if (exceeding > 0) {
-        payable(msg.sender).transfer(exceeding);
-    }
-    
-    if (!isLoanActive) {
-        borrowed = 0;
-        availableFunds = 0;
-        repayed = 0;
-        loanStartTime = 0;
-    }
+    // Helper Functions
+    function _depositFunds(uint256 amount) internal {
+        totalFunds += amount;
     }
 
-
-
+    function _resetLoanState() internal {
+        loanAmount = 0;
+        totalFunds = 0;
+        totalRepaid = 0;
+        loanIssuedTimestamp = 0;
+    }
 }
