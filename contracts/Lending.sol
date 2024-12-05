@@ -70,7 +70,7 @@ contract Lending {
         }
     }
 
-    // Helper Functions
+   
     function _depositFunds(uint256 amount) internal {
         totalFunds += amount;
     }
